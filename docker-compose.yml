@@ -1,0 +1,69 @@
+version: "3.9"
+services:
+
+  postgres:
+    image: postgres:9.6
+    container_name: postgres-container
+    restart: always
+    ports:
+      - 5432:5432
+    networks:
+      - customer-order
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_PASSWORD=pasw0rd
+      - POSTGRES_USER=test
+      - POSTGRES_DB=customer_db
+      #- POSTGRES_MULTIPLE_DATABASES=customer_db,order_db
+
+  customer:
+    image: customer-service
+    build: ./
+    container_name: customer-container
+    ports:
+      - "9000:9000"
+    expose:
+      - 9000
+    networks:
+      - customer-order
+
+    volumes:
+      - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+    depends_on:
+      - postgres
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/customer_db
+      - SPRING_DATASOURCE_USERNAME=test
+      - SPRING_DATASOURCE_PASSWORD=pasw0rd
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+
+  order:
+    image: order-service
+    build: ./
+    container_name: order-container
+    ports:
+      - "9002:9002"
+    expose:
+      - 9002
+    networks:
+      - customer-order
+    depends_on:
+      - postgres
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/order_db
+      - SPRING_DATASOURCE_USERNAME=test
+      - SPRING_DATASOURCE_PASSWORD=pasw0rd
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+  price:
+    image: price-service
+    container_name: price-container
+    ports:
+    - "9001:9001"
+    networks:
+      - customer-order
+
+networks:
+  customer-order:

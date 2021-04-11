@@ -1,0 +1,12 @@
+.idea
+
+customer-service/.gradle
+customer-service/build
+
+
+order-service/.gradle
+order-service/build
+
+
+price-handler/.gradle
+price-handler/build
